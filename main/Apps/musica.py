@@ -1,143 +1,82 @@
 import os
 import pygame
-import json
 import time
+from idiomas import App, carpeta_usuario
 
-IDIOMAS = {
-    "es": {
-        "menu": "=== Python OS ===",
-        "salir": "Salir",
-        "calc": "Calculadora",
-        "notas": "Notas",
-        "hora": "Reloj",
-        "egutegia": "Calendario",
-        "paint": "Dibujos",
-        "biderketak": "Multiplicaciones",
-        "adivina": "Adivina el número",
-        "capitales": "Capitales",
-        "iritzia": "Opiniones",
-        "acerca": "Acerca de",
-        "clima": "Clima",
-        "jokuak": "Juegos",
-        "enter": "Pulsa Enter para continuar..."
-    },
-    "en": {
-        "menu": "=== Python OS ===",
-        "salir": "Exit",
-        "calc": "Calculator",
-        "notas": "Notes",
-        "hora": "Clock",
-        "egutegia": "Calendar",
-        "paint": "Drawings",
-        "biderketak": "Multiplications",
-        "adivina": "Guess the number",
-        "capitales": "Capitals",
-        "iritzia": "Opinions",
-        "acerca": "About",
-        "clima": "Weather",
-        "jokuak": "Games",
-        "enter": "Press Enter to continue..."
-    },
-    "eu": {
-        "menu": "=== Python OS ===",
-        "salir": "Irten",
-        "calc": "Kalkulagailua",
-        "notas": "Oharrak",
-        "hora": "Ordularia",
-        "egutegia": "Egutegia",
-        "paint": "Marrazkiak",
-        "biderketak": "Biderketak",
-        "adivina": "Asmatu zenbakia",
-        "capitales": "Hiriburua",
-        "iritzia": "Iritziak",
-        "acerca": "Honi buruz",
-        "clima": "Eguraldia",
-        "jokuak": "Jokoak",
-        "enter": "Sakatu Enter jarraitzeko..."
-    }
-}
-
-idioma_actual = "es"
-usuario_actual = None
-carpeta_usuario = None
-
-def t(clave):
-    return IDIOMAS[idioma_actual].get(clave, clave)
-
-def guardar_datos(ruta, datos):
-    if os.path.dirname(ruta):
-        os.makedirs(os.path.dirname(ruta), exist_ok=True)
-    with open(ruta, "w", encoding="utf-8") as f:
-        json.dump(datos, f, ensure_ascii=False, indent=4)
-
-def cargar_datos(ruta):
-    if os.path.exists(ruta):
-        with open(ruta, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
-
-def ruta_usuario(archivo):
-    return os.path.join(carpeta_usuario, archivo)
-
-# =========================
-# Clase base
-# =========================
-class App:
-    def clear(self):
-        os.system("cls" if os.name == "nt" else "clear")
-
-    def pause(self, mensaje=None):
-        input(mensaje or t("enter"))
-
-    def titulo(self, texto):
-        self.clear()
-        print("=== " + texto + " ===")
 
 class MusicPlayer(App):
     def __init__(self):
-        self.music_folder = os.path.join(carpeta_usuario, "musica")
+        if not carpeta_usuario:
+            raise ValueError("carpeta_usuario no puede ser None")
+
+        self.carpeta_usuario = carpeta_usuario
+        self.music_folder = os.path.join(self.carpeta_usuario, "musica")
         os.makedirs(self.music_folder, exist_ok=True)
-        pygame.mixer.init()
+
+        try:
+            pygame.mixer.init()
+            self.audio_ok = True
+        except Exception as e:
+            print("✘ Error inicializando audio:", e)
+            self.audio_ok = False
 
     def listar_musica(self):
         try:
-            archivos = [f for f in os.listdir(self.music_folder)
-                        if f.lower().endswith((".mp3", ".wav"))]
+            return [
+                f
+                for f in os.listdir(self.music_folder)
+                if f.lower().endswith((".mp3", ".wav"))
+            ]
+        except Exception:
+            return []
+
+    def reproducir(self, archivo):
+        if not self.audio_ok:
+            print("✘ El sistema de audio no está disponible.")
+            return
+
+        try:
+            pygame.mixer.music.load(archivo)
+            pygame.mixer.music.play()
+            print("▶ Reproduciendo... (Ctrl+C para detener)")
+            while pygame.mixer.music.get_busy():
+                time.sleep(0.1)
+        except KeyboardInterrupt:
+            pygame.mixer.music.stop()
+            print("\n⏹ Reproducción detenida.")
         except Exception as e:
-            print("✘ Error listando música:", e)
-            archivos = []
-        return archivos
+            print("✘ Error al reproducir:", e)
 
     def run(self):
         while True:
             self.titulo("Reproductor de música")
             canciones = self.listar_musica()
+
             if not canciones:
-                print("No hay archivos de música en:", self.music_folder)
-                print("Copia algunos .mp3 o .wav ahí.")
+                print("No hay música en:", self.music_folder)
+                print("Copia archivos .mp3 o .wav ahí.")
             else:
                 for i, c in enumerate(canciones, start=1):
                     print(f"{i}. {c}")
-            print("0.", t("salir"))
+
+            print("0. Salir")
             opcion = input("> ").strip()
+
             if opcion == "0":
                 break
-            try:
-                idx = int(opcion)
-                if 1 <= idx <= len(canciones):
-                    archivo = os.path.join(self.music_folder, canciones[idx - 1])
-                    print("Reproduciendo:", canciones[idx - 1])
-                    try:
-                        pygame.mixer.music.load(archivo)
-                        pygame.mixer.music.play()
-                        while pygame.mixer.music.get_busy():
-                            time.sleep(0.1)
-                    except Exception as e:
-                        print("Error al reproducir:", e)
-                    self.pause()
-                else:
-                    print("Número inválido.")
-                    self.pause()
-            except ValueError:
-                print("Solo números.")
+
+            if not opcion.isdigit():
+                print("✘ Solo números.")
                 self.pause()
+                continue
+
+            idx = int(opcion)
+            if 1 <= idx <= len(canciones):
+                archivo = os.path.join(self.music_folder, canciones[idx - 1])
+                print("Reproduciendo:", canciones[idx - 1])
+                self.reproducir(archivo)
+                self.pause()
+            else:
+                print("✘ Número inválido.")
+                self.pause()
+
