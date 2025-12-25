@@ -1,108 +1,18 @@
-import os
-import json
 import random
+from idiomas import App, cargar_datos, guardar_datos, ruta_usuario, t
 
-IDIOMAS = {
-    "es": {
-        "menu": "=== Python OS ===",
-        "salir": "Salir",
-        "calc": "Calculadora",
-        "notas": "Notas",
-        "hora": "Reloj",
-        "egutegia": "Calendario",
-        "paint": "Dibujos",
-        "biderketak": "Multiplicaciones",
-        "adivina": "Adivina el número",
-        "capitales": "Capitales",
-        "iritzia": "Opiniones",
-        "acerca": "Acerca de",
-        "clima": "Clima",
-        "jokuak": "Juegos",
-        "enter": "Pulsa Enter para continuar..."
-    },
-    "en": {
-        "menu": "=== Python OS ===",
-        "salir": "Exit",
-        "calc": "Calculator",
-        "notas": "Notes",
-        "hora": "Clock",
-        "egutegia": "Calendar",
-        "paint": "Drawings",
-        "biderketak": "Multiplications",
-        "adivina": "Guess the number",
-        "capitales": "Capitals",
-        "iritzia": "Opinions",
-        "acerca": "About",
-        "clima": "Weather",
-        "jokuak": "Games",
-        "enter": "Press Enter to continue..."
-    },
-    "eu": {
-        "menu": "=== Python OS ===",
-        "salir": "Irten",
-        "calc": "Kalkulagailua",
-        "notas": "Oharrak",
-        "hora": "Ordularia",
-        "egutegia": "Egutegia",
-        "paint": "Marrazkiak",
-        "biderketak": "Biderketak",
-        "adivina": "Asmatu zenbakia",
-        "capitales": "Hiriburua",
-        "iritzia": "Iritziak",
-        "acerca": "Honi buruz",
-        "clima": "Eguraldia",
-        "jokuak": "Jokoak",
-        "enter": "Sakatu Enter jarraitzeko..."
-    }
-}
 
-idioma_actual = "es"
-usuario_actual = None
-carpeta_usuario = None
-
-def t(clave):
-    return IDIOMAS[idioma_actual].get(clave, clave)
-
-def guardar_datos(ruta, datos):
-    carpeta = os.path.dirname(ruta)
-    if carpeta:
-        os.makedirs(carpeta, exist_ok=True)
-    with open(ruta, "w", encoding="utf-8") as f:
-        json.dump(datos, f, ensure_ascii=False, indent=4)
-
-def cargar_datos(ruta):
-    if os.path.exists(ruta):
-        with open(ruta, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
-
-def ruta_usuario(archivo):
-    if carpeta_usuario is None:
-        raise RuntimeError("Error: usuario no logueado todavía.")
-    return os.path.join(carpeta_usuario, archivo)
-
-# =========================
-# Clase base
-# =========================
-class App:
-    def clear(self):
-        os.system("cls" if os.name == "nt" else "clear")
-
-    def pause(self, mensaje=None):
-        input(mensaje or t("enter"))
-
-    def titulo(self, texto):
-        self.clear()
-        print("=== " + texto + " ===")
-
-# =========================
-# JOKUAK
-# =========================
 class Jokuak(App):
     def __init__(self):
         self.paises = {
-            "España": "Madrid", "Francia": "Paris", "Alemania": "Berlin", "Italia": "Roma",
-            "Portugal": "Lisboa", "Grecia": "Atenas", "Reino Unido": "Londres", "Rusia": "Moscu"
+            "España": "Madrid",
+            "Francia": "Paris",
+            "Alemania": "Berlin",
+            "Italia": "Roma",
+            "Portugal": "Lisboa",
+            "Grecia": "Atenas",
+            "Reino Unido": "Londres",
+            "Rusia": "Moscu",
         }
 
     def multiplication_game(self):
@@ -125,10 +35,10 @@ class Jokuak(App):
                 print("✔ Correcto")
                 ondo += 1
             else:
-                print(f"✘ Incorrecto. Era {z1*z2}")
+                print(f"✘ Incorrecto. Era {z1 * z2}")
                 gaizki += 1
 
-        print(f"Correctas={ondo}, Incorrectas={gaizki}, %={ondo/zenbat*100:.2f}")
+        print(f"Correctas={ondo}, Incorrectas={gaizki}, %={ondo / zenbat * 100:.2f}")
         self.pause()
 
     def capital_game(self):
