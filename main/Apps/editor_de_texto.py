@@ -1,98 +1,5 @@
 import os
-import json
-
-IDIOMAS = {
-    "es": {
-        "menu": "=== Python OS ===",
-        "salir": "Salir",
-        "calc": "Calculadora",
-        "notas": "Notas",
-        "hora": "Reloj",
-        "egutegia": "Calendario",
-        "paint": "Dibujos",
-        "biderketak": "Multiplicaciones",
-        "adivina": "Adivina el número",
-        "capitales": "Capitales",
-        "iritzia": "Opiniones",
-        "acerca": "Acerca de",
-        "clima": "Clima",
-        "jokuak": "Juegos",
-        "enter": "Pulsa Enter para continuar..."
-    },
-    "en": {
-        "menu": "=== Python OS ===",
-        "salir": "Exit",
-        "calc": "Calculator",
-        "notas": "Notes",
-        "hora": "Clock",
-        "egutegia": "Calendar",
-        "paint": "Drawings",
-        "biderketak": "Multiplications",
-        "adivina": "Guess the number",
-        "capitales": "Capitals",
-        "iritzia": "Opinions",
-        "acerca": "About",
-        "clima": "Weather",
-        "jokuak": "Games",
-        "enter": "Press Enter to continue..."
-    },
-    "eu": {
-        "menu": "=== Python OS ===",
-        "salir": "Irten",
-        "calc": "Kalkulagailua",
-        "notas": "Oharrak",
-        "hora": "Ordularia",
-        "egutegia": "Egutegia",
-        "paint": "Marrazkiak",
-        "biderketak": "Biderketak",
-        "adivina": "Asmatu zenbakia",
-        "capitales": "Hiriburua",
-        "iritzia": "Iritziak",
-        "acerca": "Honi buruz",
-        "clima": "Eguraldia",
-        "jokuak": "Jokoak",
-        "enter": "Sakatu Enter jarraitzeko..."
-    }
-}
-
-idioma_actual = "es"
-usuario_actual = None
-carpeta_usuario = None
-
-def t(clave):
-    return IDIOMAS[idioma_actual].get(clave, clave)
-
-def guardar_datos(ruta, datos):
-    carpeta = os.path.dirname(ruta)
-    if carpeta:
-        os.makedirs(carpeta, exist_ok=True)
-    with open(ruta, "w", encoding="utf-8") as f:
-        json.dump(datos, f, ensure_ascii=False, indent=4)
-
-def cargar_datos(ruta):
-    if os.path.exists(ruta):
-        with open(ruta, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
-
-def ruta_usuario(archivo):
-    if carpeta_usuario is None:
-        raise RuntimeError("Error: usuario no logueado todavía.")
-    return os.path.join(carpeta_usuario, archivo)
-
-# =========================
-# Clase base
-# =========================
-class App:
-    def clear(self):
-        os.system("cls" if os.name == "nt" else "clear")
-
-    def pause(self, mensaje=None):
-        input(mensaje or t("enter"))
-
-    def titulo(self, texto):
-        self.clear()
-        print("=== " + texto + " ===")
+from idiomas import App, carpeta_usuario, t
 
 
 class EditorTexto(App):
@@ -112,6 +19,7 @@ class EditorTexto(App):
             else:
                 print("Opción inválida.")
                 self.pause()
+
     def crear_archivo(self):
         nombre = input("Nombre del archivo (sin ruta, ej: nota.txt): ").strip()
         if not nombre:
@@ -137,8 +45,11 @@ class EditorTexto(App):
 
     def abrir_archivo(self):
         try:
-            archivos = [f for f in os.listdir(carpeta_usuario)
-                        if os.path.isfile(os.path.join(carpeta_usuario, f)) and f.endswith(".txt")]
+            archivos = [
+                f
+                for f in os.listdir(carpeta_usuario)
+                if os.path.isfile(os.path.join(carpeta_usuario, f)) and f.endswith(".txt")
+            ]
         except Exception as e:
             print("✘ Error listando archivos:", e)
             self.pause()
